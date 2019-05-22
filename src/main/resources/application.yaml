@@ -1,0 +1,63 @@
+spring:
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+    servlet:
+      content-type: text/html
+    enabled: true
+    encoding: UTF-8
+    mode: HTML5
+  datasource:
+    url: jdbc:mysql://localhost:3306/miaosha?characterEncoding=utf8&allowMultiQueries=true&useSSL=false&serverTimezone=CTT
+    username: root
+    password: root9898008
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    filters: stat
+    maxActive: 1000
+    initialSize: 100
+    maxWait: 60000
+    minIdle: 500
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: select 'x'
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    maxOpenPreparedStatements: 20
+  resources:
+    add-mappings: true
+    cache:
+      period: 3600
+    chain:
+      cache: true
+      enabled: true
+      compressed: true
+      html-application-cache: true
+    static-locations: classpath:/static/
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  timeout: 3
+  password: 123456
+  poolMaxTotal: 1000
+  poolMaxIdle: 500
+  poolMaxWait: 3
+
+mybatis:
+  type-aliases-package: com.pomo.miaosha.domain
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 3000
+  mapper-locations: classpath:com/pomo/miaosha/dao/*.xml
+
+
+
+
+
+
+

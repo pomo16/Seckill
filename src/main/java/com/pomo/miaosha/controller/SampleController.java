@@ -28,9 +28,16 @@ public class SampleController {
 
     @RequestMapping("/mq")
     @ResponseBody
-    public String mq() {
+    public Result<String> mq() {
         sender.send("hello, i am mq!");
-        return "hello";
+        return Result.success("yes");
+    }
+
+    @RequestMapping("/mq/topic")
+    @ResponseBody
+    public Result<String> topic() {
+        sender.sendTopic("hello, i am mq!");
+        return Result.success("yes");
     }
 
     @RequestMapping("/hello")

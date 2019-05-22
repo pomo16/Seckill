@@ -1,6 +1,7 @@
 package com.pomo.miaosha.controller;
 
 import com.pomo.miaosha.domain.User;
+import com.pomo.miaosha.rabbitmq.MQSender;
 import com.pomo.miaosha.redis.RedisService;
 import com.pomo.miaosha.redis.UserKey;
 import com.pomo.miaosha.result.CodeMsg;
@@ -22,9 +23,13 @@ public class SampleController {
     @Autowired
     RedisService redisService;
 
-    @RequestMapping("/thymeleaf")
-    public String thymeleaf(Model model) {
-        model.addAttribute("name", "pomo");
+    @Autowired
+    MQSender sender;
+
+    @RequestMapping("/mq")
+    @ResponseBody
+    public String mq() {
+        sender.send("hello, i am mq!");
         return "hello";
     }
 

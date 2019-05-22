@@ -37,7 +37,33 @@ spring:
       compressed: true
       html-application-cache: true
     static-locations: classpath:/static/
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    #消费者数量
+    listener:
+      simple:
+        concurrency: 10
+        max-concurrency: 10
+        #消费者每次从队列获取的消息数量
+        prefetch: 1
+        #消费者自动启动
+        auto-startup: true
+        #消费失败，自动重新入队
+        default-requeue-rejected: true
+    #启动发送重试
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000
+        max-attempts: 3
+        max-interval: 10000
+        multiplier: 1.0
 
+#redis
 redis:
   host: 127.0.0.1
   port: 6379
@@ -47,6 +73,7 @@ redis:
   poolMaxIdle: 500
   poolMaxWait: 3
 
+#mybatis
 mybatis:
   type-aliases-package: com.pomo.miaosha.domain
   configuration:

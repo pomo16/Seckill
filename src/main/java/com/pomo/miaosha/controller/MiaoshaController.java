@@ -6,6 +6,8 @@ import com.pomo.miaosha.domain.OrderInfo;
 import com.pomo.miaosha.rabbitmq.MQSender;
 import com.pomo.miaosha.rabbitmq.MiaoshaMessage;
 import com.pomo.miaosha.redis.GoodsKey;
+import com.pomo.miaosha.redis.MiaoshaKey;
+import com.pomo.miaosha.redis.OrderKey;
 import com.pomo.miaosha.redis.RedisService;
 import com.pomo.miaosha.result.CodeMsg;
 import com.pomo.miaosha.result.Result;
@@ -13,15 +15,14 @@ import com.pomo.miaosha.service.GoodsService;
 import com.pomo.miaosha.service.MiaoshaService;
 import com.pomo.miaosha.service.MiaoshaUserService;
 import com.pomo.miaosha.service.OrderService;
+import com.pomo.miaosha.util.MD5Util;
+import com.pomo.miaosha.util.UUIDUtil;
 import com.pomo.miaosha.vo.GoodsVo;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -68,10 +69,15 @@ public class MiaoshaController implements InitializingBean {
 
     @RequestMapping(value="/do_miaosha", method=RequestMethod.POST)
     @ResponseBody
-    public Result<Integer> miaosha(Model model, MiaoshaUser user, @RequestParam("goodsId")long goodsId){
+    public Result<Integer> miaosha(Model model, MiaoshaUser user, @RequestParam("goodsId")long goodsId, @PathVariable("path")String path ){
         model.addAttribute("user", user);
         if(user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        //验证path
+        boolean check = miaoshaService.checkPath(user, goodsId, path);
+        if(check){
+            return Result.error(CodeMsg.REQUEST_ILLEGAL);
         }
 
         //内存标记，减少redis访问
@@ -118,6 +124,21 @@ public class MiaoshaController implements InitializingBean {
         */
     }
 
+    @RequestMapping(value="/reset", method=RequestMethod.GET)
+    @ResponseBody
+    public Result<Boolean> reset(Model model) {
+        List<GoodsVo> goodsList = goodsService.listGoodsVo();
+        for(GoodsVo goods : goodsList) {
+            goods.setStockCount(10);
+            redisService.set(GoodsKey.getMiaoshaGoodsStock, ""+goods.getId(), 10);
+            localOverMap.put(goods.getId(), false);
+        }
+        redisService.delete(OrderKey.getMiaoshaOrderByUisGid);
+        redisService.delete(MiaoshaKey.isGoodsOver);
+        miaoshaService.reset(goodsList);
+        return Result.success(true);
+    }
+
     /**
      * orderId : 成功
      * -1 : 秒杀失败
@@ -134,4 +155,15 @@ public class MiaoshaController implements InitializingBean {
         return Result.success(result);
     }
 
+    @RequestMapping(value="/path", method=RequestMethod.GET)
+    @ResponseBody
+    public Result<String> getMiaoshaPath(Model model, MiaoshaUser user, @RequestParam("goodsId")long goodsId) {
+        model.addAttribute("user", user);
+        if (user == null) {
+            return Result.error(CodeMsg.SESSION_ERROR);
+        }
+        String path = miaoshaService.createMiaoshaPath(user, goodsId);
+
+        return Result.success(path);
+    }
 }

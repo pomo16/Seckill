@@ -26,19 +26,19 @@ public class SampleController {
     @Autowired
     MQSender sender;
 
-    @RequestMapping("/mq/header")
-    @ResponseBody
-    public Result<String> header() {
-        sender.sendHeader("hello, i am mq!");
-        return Result.success("yes");
-    }
-
-    @RequestMapping("/mq/topic")
-    @ResponseBody
-    public Result<String> topic() {
-        sender.sendTopic("hello, i am mq!");
-        return Result.success("yes");
-    }
+//    @RequestMapping("/mq/header")
+////    @ResponseBody
+////    public Result<String> header() {
+////        sender.sendHeader("hello, i am mq!");
+////        return Result.success("yes");
+////    }
+////
+////    @RequestMapping("/mq/topic")
+////    @ResponseBody
+////    public Result<String> topic() {
+////        sender.sendTopic("hello, i am mq!");
+////        return Result.success("yes");
+////    }
 
     @RequestMapping("/hello")
     @ResponseBody

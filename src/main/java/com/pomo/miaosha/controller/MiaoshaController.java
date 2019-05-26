@@ -1,14 +1,12 @@
 package com.pomo.miaosha.controller;
 
+import com.pomo.miaosha.access.AccessLimit;
 import com.pomo.miaosha.domain.MiaoshaOrder;
 import com.pomo.miaosha.domain.MiaoshaUser;
 import com.pomo.miaosha.domain.OrderInfo;
 import com.pomo.miaosha.rabbitmq.MQSender;
 import com.pomo.miaosha.rabbitmq.MiaoshaMessage;
-import com.pomo.miaosha.redis.GoodsKey;
-import com.pomo.miaosha.redis.MiaoshaKey;
-import com.pomo.miaosha.redis.OrderKey;
-import com.pomo.miaosha.redis.RedisService;
+import com.pomo.miaosha.redis.*;
 import com.pomo.miaosha.result.CodeMsg;
 import com.pomo.miaosha.result.Result;
 import com.pomo.miaosha.service.GoodsService;
@@ -25,6 +23,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.OutputStream;
@@ -159,16 +158,18 @@ public class MiaoshaController implements InitializingBean {
         return Result.success(result);
     }
 
+    //正常verifyCode不能设默认值，只是为了测试限流能快速点击
+    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
     @RequestMapping(value="/path", method=RequestMethod.GET)
     @ResponseBody
-    public Result<String> getMiaoshaPath(Model model, MiaoshaUser user,
+    public Result<String> getMiaoshaPath(HttpServletRequest request, MiaoshaUser user,
                                          @RequestParam("goodsId")long goodsId,
                                          @RequestParam(value="verifyCode", defaultValue="0")int verifyCode) {
-        model.addAttribute("user", user);
         if (user == null) {
             return Result.error(CodeMsg.SESSION_ERROR);
         }
-        //
+
+        //验证验证码
         boolean check = miaoshaService.checkVerifyCode(user, goodsId, verifyCode);
         String path = miaoshaService.createMiaoshaPath(user, goodsId);
         if(!check) {
